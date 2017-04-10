@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/linearLayoutVisual"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@android:color/black"
+        android:orientation="vertical"/>
+
+    <LinearLayout
+        android:id="@+id/play_control"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/linearLayoutVisual"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnPauseSlider"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/ic_action_pause"
+            android:gravity="center_vertical"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnPlaySlider"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/ic_action_play"
+            android:gravity="center_vertical" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/listView_Recording"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/play_control"
+        android:background="@android:color/transparent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10.0sp" />
+
+</RelativeLayout>

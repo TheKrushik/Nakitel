@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">NakitelDemo</string>
+
+    <string name="rec_start">Recording Started</string>
+    <string name="rec_fail">Recording Failed</string>
+    <string name="rec_fail_mkdir">Failed to create recordings folder</string>
+    <string name="rec_saved">Recording Saved at </string>
+    <string name="rec_deleted">Deleted recording</string>
+    <string name="rec_delete_fail">Failed to delete recording </string>
+</resources>

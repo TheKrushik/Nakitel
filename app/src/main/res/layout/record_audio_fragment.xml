@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <info.krushik.android.customview.RecorderVisualizerView
+        android:id="@+id/visualizer"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="@android:color/background_dark" />
+
+    <LinearLayout
+        android:id="@+id/recording_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/start_recording"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_mic" />
+
+        <ImageView
+            android:id="@+id/stop_recording"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_action_stop" />
+
+        <ImageView
+            android:id="@+id/delete_recording"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_delete" />
+
+        <ImageView
+            android:id="@+id/browse_recording"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_sort_list" />
+    </LinearLayout>
+
+</LinearLayout>
