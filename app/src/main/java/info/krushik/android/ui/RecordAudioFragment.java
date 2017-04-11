@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,6 +25,9 @@ import android.widget.Toast;
 import info.krushik.android.R;
 import info.krushik.android.customview.RecorderVisualizerView;
 import info.krushik.android.util.Helper;
+
+import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class RecordAudioFragment extends Fragment {
 
@@ -43,6 +49,7 @@ public class RecordAudioFragment extends Fragment {
     };
 
     public static final int REPEAT_INTERVAL = 40;
+    public static final int RequestPermissionCode = 1;
 
     private Handler handler = new Handler(); // Handler for updating the visualizer
 
@@ -64,64 +71,67 @@ public class RecordAudioFragment extends Fragment {
 
                         Helper.getHelperInstance().makeHepticFeedback(getActivity());
 
-                        if (Helper.getHelperInstance().createRecordingFolder()) {
+                        if (checkPermission()) {
+                            if (Helper.getHelperInstance().createRecordingFolder()) {
 
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
-                            String currentTimeStamp = dateFormat.format(new Date());
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
+                                String currentTimeStamp = dateFormat.format(new Date());
 
-                            currentOutFile = Helper.RECORDING_PATH + "/recording_" + currentTimeStamp + ".3gp";
+                                currentOutFile = Helper.RECORDING_PATH + "/recording_" + currentTimeStamp + ".3gp";
 
-                            myAudioRecorder = new MediaRecorder();
-                            myAudioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                            myAudioRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                            myAudioRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-                            myAudioRecorder.setOutputFile(currentOutFile);
+                                myAudioRecorder = new MediaRecorder();
+                                myAudioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                                myAudioRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                                myAudioRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+                                myAudioRecorder.setOutputFile(currentOutFile);
 
-                            try {
-                                myAudioRecorder.prepare();
-                                myAudioRecorder.start();
+                                try {
+                                    myAudioRecorder.prepare();
+                                    myAudioRecorder.start();
 
+                                    Toast.makeText(getActivity(),
+                                            getActivity().getResources().getString(R.string.rec_start),
+                                            Toast.LENGTH_LONG).show();
+
+                                    rootView.findViewById(R.id.start_recording).setEnabled(false);
+                                    rootView.findViewById(R.id.stop_recording).setEnabled(true);
+                                    rootView.findViewById(R.id.delete_recording).setEnabled(false);
+
+                                    isRecording = true;
+
+                                    handler.post(updateVisualizer);
+                                } catch (IllegalStateException e) {
+                                    Toast.makeText(getActivity(),
+                                            getActivity().getResources().getString(R.string.rec_fail),
+                                            Toast.LENGTH_LONG).show();
+                                    e.printStackTrace();
+
+                                    rootView.findViewById(R.id.start_recording).setEnabled(true);
+                                    rootView.findViewById(R.id.stop_recording).setEnabled(false);
+                                    rootView.findViewById(R.id.delete_recording).setEnabled(true);
+
+                                    isRecording = false;
+                                } catch (IOException e) {
+                                    Toast.makeText(getActivity(),
+                                            getActivity().getResources().getString(R.string.rec_fail),
+                                            Toast.LENGTH_LONG).show();
+                                    e.printStackTrace();
+
+                                    rootView.findViewById(R.id.start_recording).setEnabled(true);
+                                    rootView.findViewById(R.id.stop_recording).setEnabled(false);
+                                    rootView.findViewById(R.id.delete_recording).setEnabled(true);
+
+                                    isRecording = false;
+                                }
+                            } else {
                                 Toast.makeText(getActivity(),
-                                        getActivity().getResources().getString(R.string.rec_start),
+                                        getActivity().getResources().getString(R.string.rec_fail_mkdir),
                                         Toast.LENGTH_LONG).show();
-
-                                rootView.findViewById(R.id.start_recording).setEnabled(false);
-                                rootView.findViewById(R.id.stop_recording).setEnabled(true);
-                                rootView.findViewById(R.id.delete_recording).setEnabled(false);
-
-                                isRecording = true;
-
-                                handler.post(updateVisualizer);
-                            } catch (IllegalStateException e) {
-                                Toast.makeText(getActivity(),
-                                        getActivity().getResources().getString(R.string.rec_fail),
-                                        Toast.LENGTH_LONG).show();
-                                e.printStackTrace();
-
-                                rootView.findViewById(R.id.start_recording).setEnabled(true);
-                                rootView.findViewById(R.id.stop_recording).setEnabled(false);
-                                rootView.findViewById(R.id.delete_recording).setEnabled(true);
-
-                                isRecording = false;
-                            } catch (IOException e) {
-                                Toast.makeText(getActivity(),
-                                        getActivity().getResources().getString(R.string.rec_fail),
-                                        Toast.LENGTH_LONG).show();
-                                e.printStackTrace();
-
-                                rootView.findViewById(R.id.start_recording).setEnabled(true);
-                                rootView.findViewById(R.id.stop_recording).setEnabled(false);
-                                rootView.findViewById(R.id.delete_recording).setEnabled(true);
 
                                 isRecording = false;
                             }
                         } else {
-
-                            Toast.makeText(getActivity(),
-                                    getActivity().getResources().getString(R.string.rec_fail_mkdir),
-                                    Toast.LENGTH_LONG).show();
-
-                            isRecording = false;
+                            requestPermission();
                         }
 
                         return false;
@@ -200,12 +210,15 @@ public class RecordAudioFragment extends Fragment {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
 
-                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.container, new RecordingListFragment());
-                        fragmentTransaction.addToBackStack("RecordingListFragment");
-                        fragmentTransaction.commit();
-
+                        if (checkPermission()) {
+                            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            fragmentTransaction.replace(R.id.container, new RecordingListFragment());
+                            fragmentTransaction.addToBackStack("RecordingListFragment");
+                            fragmentTransaction.commit();
+                        } else {
+                            requestPermission();
+                        }
                         return false;
                     }
                 });
@@ -291,4 +304,39 @@ public class RecordAudioFragment extends Fragment {
             }
         }
     };
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(getActivity(), new
+                String[]{WRITE_EXTERNAL_STORAGE, RECORD_AUDIO}, RequestPermissionCode);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case RequestPermissionCode:
+                if (grantResults.length > 0) {
+                    boolean StoragePermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean RecordPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+                    if (StoragePermission && RecordPermission) {
+                        Toast.makeText(getActivity(),
+                                "Permission Granted",
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getActivity(),
+                                "Permission Denied",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+                break;
+        }
+    }
+
+    public boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(getActivity(), WRITE_EXTERNAL_STORAGE);
+        int result1 = ContextCompat.checkSelfPermission(getActivity(), RECORD_AUDIO);
+        return result == PackageManager.PERMISSION_GRANTED &&
+                result1 == PackageManager.PERMISSION_GRANTED;
+    }
+
 }
